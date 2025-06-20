@@ -25,9 +25,9 @@ async function loadBetDataFromFirebase(inviteCode) {
         console.log('🔍 Querying Firestore for invite code:', inviteCode);
         
         // Query Firestore for the bet with this invite code
-        const betsRef = collection(window.firebaseDb, 'bets');
-        const q = query(betsRef, where('inviteCode', '==', inviteCode));
-        const querySnapshot = await getDocs(q);
+        const betsRef = window.firebaseDb.collection('bets');
+        const q = betsRef.where('inviteCode', '==', inviteCode);
+        const querySnapshot = await q.get();
         
         console.log('📊 Query result:', querySnapshot.size, 'bets found');
         
@@ -65,9 +65,9 @@ async function loadBetDataFromFirebase(inviteCode) {
         console.log('🎁 Getting reward count...');
         
         // Get reward count
-        const rewardsRef = collection(window.firebaseDb, 'rewards');
-        const rewardsQuery = query(rewardsRef, where('betId', '==', betDoc.id));
-        const rewardsSnapshot = await getDocs(rewardsQuery);
+        const rewardsRef = window.firebaseDb.collection('rewards');
+        const rewardsQuery = rewardsRef.where('betId', '==', betDoc.id);
+        const rewardsSnapshot = await rewardsQuery.get();
         const rewardCount = rewardsSnapshot.size;
         
         console.log('🎁 Reward count:', rewardCount);
