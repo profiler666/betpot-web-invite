@@ -41,6 +41,15 @@
             
             console.log('🌐 Firebase made available globally');
             
+            // Signal that Firebase is ready
+            window.firebaseReady = true;
+            
+            // If the main script is already loaded, trigger the data load
+            if (window.inviteCode && window.loadBetDataFromFirebase) {
+                console.log('🚀 Triggering delayed data load for:', window.inviteCode);
+                loadBetDataFromFirebase(window.inviteCode);
+            }
+            
         } catch (error) {
             console.error('❌ Firebase initialization failed:', error);
         }

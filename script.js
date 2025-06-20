@@ -4,12 +4,40 @@ const inviteCode = urlParams.get('code');
 
 console.log('🔍 Debug: Invite code from URL:', inviteCode);
 
+// Store invite code globally for delayed loading
+window.inviteCode = inviteCode;
+
 if (!inviteCode) {
     showError('Invalid invitation link');
 } else {
-    // Load bet data from Firebase
-    console.log('🚀 Starting Firebase data load for invite code:', inviteCode);
-    loadBetDataFromFirebase(inviteCode);
+    // Check if Firebase is already ready
+    if (window.firebaseReady) {
+        console.log('🚀 Firebase ready, starting data load for invite code:', inviteCode);
+        loadBetDataFromFirebase(inviteCode);
+    } else {
+        console.log('⏳ Firebase not ready yet, waiting...');
+        // Wait for Firebase to be ready
+        waitForFirebase();
+    }
+}
+
+function waitForFirebase() {
+    const checkInterval = setInterval(() => {
+        if (window.firebaseReady) {
+            console.log('✅ Firebase is now ready, starting data load');
+            clearInterval(checkInterval);
+            loadBetDataFromFirebase(window.inviteCode);
+        }
+    }, 100);
+    
+    // Timeout after 10 seconds
+    setTimeout(() => {
+        clearInterval(checkInterval);
+        if (!window.firebaseReady) {
+            console.error('❌ Firebase failed to initialize within 10 seconds');
+            showError('Failed to connect to database. Please try again.');
+        }
+    }, 10000);
 }
 
 async function loadBetDataFromFirebase(inviteCode) {
