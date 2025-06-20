@@ -2,40 +2,175 @@
 const urlParams = new URLSearchParams(window.location.search);
 const inviteCode = urlParams.get('code');
 
+console.log('🔍 Debug: Invite code from URL:', inviteCode);
+
 if (!inviteCode) {
     showError('Invalid invitation link');
 } else {
-    // Simulate loading bet data (in real implementation, this would fetch from Firebase)
-    // For now, we'll use placeholder data
-    setTimeout(() => {
-        loadBetData();
-    }, 500);
+    // Load bet data from Firebase
+    console.log('🚀 Starting Firebase data load for invite code:', inviteCode);
+    loadBetDataFromFirebase(inviteCode);
 }
 
-function loadBetData() {
-    // In a real implementation, you would fetch bet data from Firebase
-    // using the invite code. For now, we'll use placeholder data.
-    
-    // Example bet data structure
-    const betData = {
-        challengeText: "Exercise for 30 minutes every day",
-        frequency: "Daily",
-        duration: "2 weeks",
-        category: "Fitness",
-        rewardCount: 3,
-        expiryTime: "48 hours"
-    };
+async function loadBetDataFromFirebase(inviteCode) {
+    try {
+        console.log('📡 Connecting to Firebase...');
+        showLoading(true);
+        
+        // Check if Firebase is available
+        if (!window.firebaseDb) {
+            throw new Error('Firebase not initialized');
+        }
+        
+        console.log('🔍 Querying Firestore for invite code:', inviteCode);
+        
+        // Query Firestore for the bet with this invite code
+        const betsRef = collection(window.firebaseDb, 'bets');
+        const q = query(betsRef, where('inviteCode', '==', inviteCode));
+        const querySnapshot = await getDocs(q);
+        
+        console.log('📊 Query result:', querySnapshot.size, 'bets found');
+        
+        if (querySnapshot.empty) {
+            console.log('❌ No bet found with invite code:', inviteCode);
+            showError('Bet not found or invite code has expired');
+            return;
+        }
+        
+        const betDoc = querySnapshot.docs[0];
+        const betData = betDoc.data();
+        
+        console.log('📋 Bet data retrieved:', betData);
+        
+        // Check if invite code has expired
+        if (betData.inviteCodeExpiry) {
+            const expiryDate = betData.inviteCodeExpiry.toDate();
+            const now = new Date();
+            
+            console.log('⏰ Expiry check:', { expiryDate, now, isExpired: now > expiryDate });
+            
+            if (now > expiryDate) {
+                showError('This invitation has expired');
+                return;
+            }
+        }
+        
+        // Check if bet is already joined
+        if (betData.isJoined) {
+            console.log('❌ Bet already joined');
+            showError('This bet has already been joined');
+            return;
+        }
+        
+        console.log('🎁 Getting reward count...');
+        
+        // Get reward count
+        const rewardsRef = collection(window.firebaseDb, 'rewards');
+        const rewardsQuery = query(rewardsRef, where('betId', '==', betDoc.id));
+        const rewardsSnapshot = await getDocs(rewardsQuery);
+        const rewardCount = rewardsSnapshot.size;
+        
+        console.log('🎁 Reward count:', rewardCount);
+        
+        // Format the data for display
+        const displayData = {
+            challengeText: betData.challengeText,
+            frequency: betData.frequency === 'daily' ? 'Daily' : 'Weekly',
+            duration: `${betData.durationInWeeks} ${betData.durationInWeeks === 1 ? 'week' : 'weeks'}`,
+            category: formatCategory(betData.category),
+            rewardCount: rewardCount,
+            expiryTime: formatExpiryTime(betData.inviteCodeExpiry),
+            creatorId: betData.creatorId,
+            betId: betDoc.id
+        };
+        
+        console.log('🎨 Formatted display data:', displayData);
+        
+        // Update UI with real bet data
+        updateUI(displayData);
+        
+        console.log('✅ UI updated successfully');
+        
+        // Track successful page view
+        trackEvent('invite_page_view', { 
+            inviteCode,
+            betId: betDoc.id,
+            category: betData.category,
+            frequency: betData.frequency
+        });
+        
+    } catch (error) {
+        console.error('❌ Error loading bet data:', error);
+        console.error('❌ Error details:', {
+            message: error.message,
+            code: error.code,
+            stack: error.stack
+        });
+        showError(`Failed to load bet information: ${error.message}`);
+    } finally {
+        showLoading(false);
+    }
+}
 
-    // Update UI with bet data
+function formatCategory(category) {
+    const categories = {
+        'fitness': 'Fitness',
+        'health': 'Health',
+        'learning': 'Learning',
+        'productivity': 'Productivity',
+        'social': 'Social',
+        'creativity': 'Creativity',
+        'finance': 'Finance',
+        'other': 'Other'
+    };
+    return categories[category] || 'Other';
+}
+
+function formatExpiryTime(expiryDate) {
+    if (!expiryDate) return '48 hours';
+    
+    const expiry = expiryDate.toDate();
+    const now = new Date();
+    const diffMs = expiry - now;
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+    
+    if (diffHours <= 0) return 'Expired';
+    if (diffHours < 24) return `${diffHours} hours`;
+    if (diffHours < 48) return `${Math.ceil(diffHours / 24)} day`;
+    return `${Math.ceil(diffHours / 24)} days`;
+}
+
+function updateUI(betData) {
     document.getElementById('challengeText').textContent = betData.challengeText;
     document.getElementById('frequency').textContent = betData.frequency;
     document.getElementById('duration').textContent = betData.duration;
     document.getElementById('category').textContent = betData.category;
-    document.getElementById('rewardCount').textContent = `${betData.rewardCount} rewards`;
+    document.getElementById('rewardCount').textContent = `${betData.rewardCount} ${betData.rewardCount === 1 ? 'reward' : 'rewards'}`;
     document.getElementById('expiryTime').textContent = betData.expiryTime;
+    
+    // Store bet data for join function
+    window.currentBetData = betData;
+}
+
+function showLoading(show) {
+    const button = document.getElementById('joinButton');
+    const loading = document.getElementById('loading');
+    
+    if (show) {
+        button.style.display = 'none';
+        loading.style.display = 'block';
+    } else {
+        button.style.display = 'flex';
+        loading.style.display = 'none';
+    }
 }
 
 function joinBet() {
+    if (!window.currentBetData) {
+        showError('Bet data not loaded');
+        return;
+    }
+    
     const button = document.getElementById('joinButton');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
@@ -50,6 +185,14 @@ function joinBet() {
     // Try to open the BetPot app with the invite code
     const appUrl = `betpot://join?code=${inviteCode}`;
     const fallbackUrl = `https://betpot.app/join?code=${inviteCode}`;
+
+    // Track join attempt
+    trackEvent('join_button_click', { 
+        inviteCode,
+        betId: window.currentBetData.betId,
+        category: window.currentBetData.category,
+        frequency: window.currentBetData.frequency
+    });
 
     // Try to open the app
     window.location.href = appUrl;
@@ -70,6 +213,12 @@ function showError(message) {
     const error = document.getElementById('error');
     error.textContent = message;
     error.style.display = 'block';
+    
+    // Track error
+    trackEvent('invite_page_error', { 
+        inviteCode,
+        error: message 
+    });
 }
 
 // Handle page visibility changes (when app opens)
@@ -77,20 +226,18 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
         // App opened successfully
         console.log('BetPot app opened');
+        trackEvent('app_opened', { inviteCode });
     }
 });
 
-// Add some basic analytics (optional)
+// Analytics tracking function
 function trackEvent(eventName, parameters = {}) {
     // In a real implementation, you might want to send analytics
     // to Google Analytics, Firebase Analytics, or similar
     console.log('Analytics Event:', eventName, parameters);
-}
-
-// Track page view
-trackEvent('invite_page_view', { inviteCode });
-
-// Track button clicks
-document.getElementById('joinButton').addEventListener('click', () => {
-    trackEvent('join_button_click', { inviteCode });
-}); 
+    
+    // You can also send to Firebase Analytics if configured
+    if (window.gtag) {
+        window.gtag('event', eventName, parameters);
+    }
+} 
