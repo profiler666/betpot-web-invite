@@ -22,7 +22,9 @@ if (!inviteCode) {
 }
 
 function waitForFirebase() {
+    console.log('⏳ Starting to wait for Firebase...');
     const checkInterval = setInterval(() => {
+        console.log('⏳ Checking if Firebase is ready...', window.firebaseReady);
         if (window.firebaseReady) {
             console.log('✅ Firebase is now ready, starting data load');
             clearInterval(checkInterval);

@@ -44,10 +44,16 @@
             // Signal that Firebase is ready
             window.firebaseReady = true;
             
+            console.log('🚀 Firebase ready signal set, checking for pending operations...');
+            
             // If the main script is already loaded, trigger the data load
-            if (window.inviteCode && window.loadBetDataFromFirebase) {
+            if (window.inviteCode && typeof window.loadBetDataFromFirebase === 'function') {
                 console.log('🚀 Triggering delayed data load for:', window.inviteCode);
-                loadBetDataFromFirebase(window.inviteCode);
+                setTimeout(() => {
+                    window.loadBetDataFromFirebase(window.inviteCode);
+                }, 100);
+            } else {
+                console.log('⏳ No pending operations or loadBetDataFromFirebase not available yet');
             }
             
         } catch (error) {
@@ -108,6 +114,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html> 
