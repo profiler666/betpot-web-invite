@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Join a BetPot challenge!">
+    <title>BetPot - Join Challenge</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎯 BetPot</div>
+            <div class="subtitle">Join the challenge!</div>
+        </div>
+
+        <div class="content">
+            <div class="challenge-card">
+                <div class="challenge-title" id="challengeText">Loading challenge...</div>
+                <div class="challenge-details">
+                    <div class="detail">
+                        <div class="detail-icon">📅</div>
+                        <span id="frequency">Daily</span>
+                    </div>
+                    <div class="detail">
+                        <div class="detail-icon">⏱️</div>
+                        <span id="duration">1 week</span>
+                    </div>
+                    <div class="detail">
+                        <div class="detail-icon">🏷️</div>
+                        <span id="category">Fitness</span>
+                    </div>
+                </div>
+                <div class="reward-info">
+                    <span>🎁</span>
+                    <span id="rewardCount">1 reward</span> in the pot
+                </div>
+            </div>
+
+            <button class="join-button" id="joinButton" onclick="joinBet()">
+                <span>📱</span>
+                <span>Join in BetPot App</span>
+            </button>
+
+            <div class="instructions">
+                Open this link in the BetPot app to join the challenge
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Opening BetPot app...</div>
+            </div>
+
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="footer">
+            <div>BetPot - Social Goal Setting</div>
+            <div>Challenge expires in <span id="expiryTime">48 hours</span></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
