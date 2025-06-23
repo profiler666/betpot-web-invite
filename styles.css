@@ -100,6 +100,84 @@ body {
     color: #856404;
 }
 
+.reward-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.reward-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #856404;
+    font-weight: 600;
+}
+
+.reward-icon {
+    font-size: 16px;
+}
+
+.reward-label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reward-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reward-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+    line-height: 1.4;
+}
+
+.reward-category {
+    display: inline-block;
+    background: #4FC3F7;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: flex-start;
+}
+
+/* Category-specific colors */
+.reward-category.self-care {
+    background: #4FC3F7; /* Primary blue */
+}
+
+.reward-category.adventure {
+    background: #43A047; /* Success green */
+}
+
+.reward-category.experience {
+    background: #8E24AA; /* Joker purple */
+}
+
+.reward-category.lifestyle {
+    background: #FF7043; /* Accent orange */
+}
+
+.reward-category.celebration {
+    background: #FFD600; /* Secondary gold */
+}
+
+.reward-category.cash {
+    background: #E53935; /* Danger red */
+}
+
 .join-button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -195,5 +273,19 @@ body {
     
     .logo {
         font-size: 24px;
+    }
+    
+    .reward-section {
+        padding: 12px;
+        margin-top: 12px;
+    }
+    
+    .reward-title {
+        font-size: 14px;
+    }
+    
+    .reward-category {
+        font-size: 11px;
+        padding: 3px 10px;
     }
 } 

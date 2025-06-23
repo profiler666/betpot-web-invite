@@ -102,13 +102,31 @@ async function loadBetDataFromFirebase(inviteCode) {
         
         console.log('🎁 Reward count:', rewardCount);
         
+        // Get the first reward details (invite bets start with 1 reward)
+        let rewardData = null;
+        if (!rewardsSnapshot.empty) {
+            const rewardDoc = rewardsSnapshot.docs[0];
+            rewardData = rewardDoc.data();
+            console.log('🎁 Reward data:', rewardData);
+        }
+        
+        // Validate reward data
+        if (!rewardData || !rewardData.title || !rewardData.category) {
+            console.warn('⚠️ Invalid or missing reward data:', rewardData);
+            rewardData = {
+                title: 'Mystery Reward',
+                category: 'selfCare'
+            };
+        }
+        
         // Format the data for display
         const displayData = {
             challengeText: betData.challengeText,
             frequency: betData.frequency === 'daily' ? 'Daily' : 'Weekly',
             duration: `${betData.durationInWeeks} ${betData.durationInWeeks === 1 ? 'week' : 'weeks'}`,
             category: formatCategory(betData.category),
-            rewardCount: rewardCount,
+            rewardTitle: rewardData.title,
+            rewardCategory: formatRewardCategory(rewardData.category),
             expiryTime: formatExpiryTime(betData.inviteCodeExpiry),
             creatorId: betData.creatorId,
             betId: betDoc.id
@@ -120,6 +138,10 @@ async function loadBetDataFromFirebase(inviteCode) {
         updateUI(displayData);
         
         console.log('✅ UI updated successfully');
+        console.log('🎁 Reward display updated:', {
+            title: displayData.rewardTitle,
+            category: displayData.rewardCategory
+        });
         
         // Track successful page view
         trackEvent('invite_page_view', { 
@@ -156,6 +178,18 @@ function formatCategory(category) {
     return categories[category] || 'Other';
 }
 
+function formatRewardCategory(category) {
+    const rewardCategories = {
+        'selfCare': 'Self Care',
+        'adventure': 'Adventure',
+        'experience': 'Experience',
+        'lifestyle': 'Lifestyle',
+        'celebration': 'Celebration',
+        'cash': 'Cash'
+    };
+    return rewardCategories[category] || 'Self Care';
+}
+
 function formatExpiryTime(expiryDate) {
     if (!expiryDate) return '48 hours';
     
@@ -175,7 +209,16 @@ function updateUI(betData) {
     document.getElementById('frequency').textContent = betData.frequency;
     document.getElementById('duration').textContent = betData.duration;
     document.getElementById('category').textContent = betData.category;
-    document.getElementById('rewardCount').textContent = `${betData.rewardCount} ${betData.rewardCount === 1 ? 'reward' : 'rewards'}`;
+    document.getElementById('rewardTitle').textContent = betData.rewardTitle;
+    
+    const rewardCategoryElement = document.getElementById('rewardCategory');
+    rewardCategoryElement.textContent = betData.rewardCategory;
+    
+    // Apply category-specific styling
+    rewardCategoryElement.className = 'reward-category';
+    const categoryClass = betData.rewardCategory.toLowerCase().replace(' ', '-');
+    rewardCategoryElement.classList.add(categoryClass);
+    
     document.getElementById('expiryTime').textContent = betData.expiryTime;
     
     // Store bet data for join function
